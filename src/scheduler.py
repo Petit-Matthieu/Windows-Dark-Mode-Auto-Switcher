@@ -336,11 +336,10 @@ class DarkModeScheduler:
             # Clear override at scheduled switch time and apply
             self._manual_override = False
 
-        if self._next_switch_is_dark is not None:
-            self._apply_mode(self._next_switch_is_dark)
-
-        # Refresh sun times at midnight
-        if now.hour == 0 and now.minute < 5:
-            self._refresh_sun_times()
+        # Re-read current time and refresh sun times, because we may have
+        # slept past the scheduled switch (e.g. hibernate).  Using the
+        # stale _next_switch_is_dark could apply the wrong mode.
+        self._refresh_sun_times()
+        self._apply_current_mode()
 
         self._notify_recalculate()

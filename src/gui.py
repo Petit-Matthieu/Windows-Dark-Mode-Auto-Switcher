@@ -724,12 +724,18 @@ class DarkModeGUI:
                 tz = ZoneInfo(self.scheduler.geo.timezone)
             now = datetime.now(tz) if tz else datetime.now()
             delta = next_time - now
-            hours, remainder = divmod(int(delta.total_seconds()), 3600)
-            minutes, seconds = divmod(remainder, 60)
-            mode = "深色" if next_is_dark else "浅色"
-            self._lbl_next.config(
-                text=f"{mode}模式 @ {next_time.strftime('%H:%M')} ({hours}h{minutes}m)"
-            )
+            total_secs = int(delta.total_seconds())
+            if total_secs < 0:
+                # Stale next_switch_time (e.g. after sleep/hibernate);
+                # scheduler hasn't recalculated yet — show placeholder
+                self._lbl_next.config(text="重新计算中...")
+            else:
+                hours, remainder = divmod(total_secs, 3600)
+                minutes, seconds = divmod(remainder, 60)
+                mode = "深色" if next_is_dark else "浅色"
+                self._lbl_next.config(
+                    text=f"{mode}模式 @ {next_time.strftime('%H:%M')} ({hours}h{minutes}m)"
+                )
 
         # Location — 城市模式显示城市名，经纬度模式显示坐标
         mode = self._var_location_mode.get() if self._var_location_mode else "auto"
