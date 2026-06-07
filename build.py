@@ -8,7 +8,7 @@ PYTHON = sys.executable
 
 # Kill running instance if present
 subprocess.run(["taskkill", "/F", "/IM", "DarkModeAutoSwitcher.exe"],
-               capture_output=True)
+               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 # Build
 result = subprocess.run(

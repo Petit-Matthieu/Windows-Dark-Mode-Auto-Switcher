@@ -90,7 +90,6 @@ class DarkModeGUI:
         self._var_switch_vscode = None
         self._var_switch_edge = None
         self._var_switch_word = None
-        self._var_switch_wyy = None
         self._var_autostart = None
         self._var_minimize_to_tray = None
         self._var_vscode_dark = None
@@ -132,7 +131,6 @@ class DarkModeGUI:
         from PIL import ImageTk
         self._app_icon_vscode = ImageTk.PhotoImage(get_app_icon_with_fallback("vscode", 32, "#007ACC"))
         self._app_icon_word = ImageTk.PhotoImage(get_app_icon_with_fallback("word", 32, "#2B579A"))
-        self._app_icon_wyy = ImageTk.PhotoImage(get_app_icon_with_fallback("wyy", 32, "#E84040"))
         self._app_icon_edge = ImageTk.PhotoImage(get_app_icon_with_fallback("edge", 32, "#0078D4"))
 
         # Style
@@ -418,19 +416,6 @@ class DarkModeGUI:
             ttk.Label(word_row, image=self._app_icon_word).pack(side=tk.LEFT, padx=(0, 4))
         ttk.Checkbutton(
             word_row, text="Word 主题", variable=self._var_switch_word
-        ).pack(side=tk.LEFT)
-
-        # ── 网易云音乐 ──
-        self._var_switch_wyy = tk.BooleanVar(
-            value=self.config.get("features", {}).get("switch_wyy", True)
-        )
-        wyy_row = ttk.Frame(app_frame)
-        wyy_row.pack(fill=tk.X, pady=(0, 6))
-        self._all_frames.append(wyy_row)
-        if self._app_icon_wyy:
-            ttk.Label(wyy_row, image=self._app_icon_wyy).pack(side=tk.LEFT, padx=(0, 4))
-        ttk.Checkbutton(
-            wyy_row, text="网易云音乐 主题", variable=self._var_switch_wyy
         ).pack(side=tk.LEFT)
 
         # ── Edge + Dark Reader ──
@@ -798,7 +783,6 @@ class DarkModeGUI:
             f"• VS Code\n"
             f"• Microsoft Word / Office\n"
             f"• Edge + Dark Reader\n"
-            f"• 网易云音乐\n"
             f"{sun_info}\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"📐 计算原理\n\n"
@@ -933,7 +917,6 @@ class DarkModeGUI:
                 "switch_vscode": self._var_switch_vscode.get(),
                 "switch_edge_dark_reader": self._var_switch_edge.get(),
                 "switch_word": self._var_switch_word.get(),
-                "switch_wyy": self._var_switch_wyy.get(),
             },
             "autostart": self._var_autostart.get(),
             "minimize_to_tray": self._var_minimize_to_tray.get(),

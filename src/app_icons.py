@@ -107,47 +107,6 @@ def _find_edge_exe():
     return None
 
 
-def _find_wyy_exe():
-    # type: () -> Optional[str]
-    """Find NetEase Cloud Music executable."""
-    import winreg
-
-    # Method 1: Registry install path
-    try:
-        key = winreg.OpenKey(
-            winreg.HKEY_LOCAL_MACHINE,
-            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\NetEase Cloud Music",
-            0,
-            winreg.KEY_READ,
-        )
-        path, _ = winreg.QueryValueEx(key, "InstallLocation")
-        winreg.CloseKey(key)
-        if path:
-            candidate = os.path.join(path, "cloudmusic.exe")
-            if os.path.isfile(candidate):
-                return candidate
-    except (FileNotFoundError, OSError):
-        pass
-
-    # Method 2: App Paths
-    path = _find_exe_from_app_paths("cloudmusic.exe")
-    if path:
-        return path
-
-    # Method 3: Common locations
-    for base in [
-        os.environ.get("LOCALAPPDATA", ""),
-        os.environ.get("ProgramFiles", r"C:\Program Files"),
-        os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"),
-    ]:
-        if not base:
-            continue
-        candidate = os.path.join(base, r"NetEase\CloudMusic\cloudmusic.exe")
-        if os.path.isfile(candidate):
-            return candidate
-    return None
-
-
 # ── 图标提取 ──
 
 def _extract_icon_from_exe(exe_path, size=24):
@@ -234,7 +193,7 @@ def get_app_icon(app_name, size=24):
     """Get the native icon for a supported application.
 
     Args:
-        app_name: One of "word", "vscode", "edge", "wyy".
+        app_name: One of "word", "vscode", "edge".
         size: Desired icon size in pixels.
 
     Returns:
@@ -244,7 +203,6 @@ def get_app_icon(app_name, size=24):
         "word": _find_word_exe,
         "vscode": _find_vscode_exe,
         "edge": _find_edge_exe,
-        "wyy": _find_wyy_exe,
     }
 
     finder = finders.get(app_name)
@@ -266,7 +224,7 @@ def get_app_icon_with_fallback(app_name, size=24, fallback_color="#808080"):
     """Get the native icon, falling back to a simple colored circle.
 
     Args:
-        app_name: One of "word", "vscode", "edge", "wyy".
+        app_name: One of "word", "vscode", "edge".
         size: Desired icon size in pixels.
         fallback_color: Color for the fallback circle.
 

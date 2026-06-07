@@ -171,8 +171,6 @@ def get_moon_ico_path():
 # ── 应用图标颜色 ──
 WORD_BLUE = "#2B579A"          # Word 蓝色
 WORD_DARK = "#1B3A6B"          # Word 描边深蓝
-WYY_RED = "#E84040"            # 网易云音乐红色
-WYY_DARK = "#A02020"           # 网易云音乐描边深红
 VSCODE_BLUE = "#007ACC"        # VS Code 蓝色
 VSCODE_DARK = "#005A99"        # VS Code 描边深蓝
 EDGE_BLUE = "#0078D4"          # Edge 蓝色
@@ -215,55 +213,6 @@ def create_word_icon(size: int = 64) -> Image.Image:
         (size - margin, margin),
     ]
     fd.line(points_fill, fill=WORD_BLUE, width=max(3, size // 10))
-
-    # 合成
-    result = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    result.paste(outline, (0, 0), outline)
-    result.paste(fill, (0, 0), fill)
-    return result
-
-
-def create_wyy_icon(size: int = 64) -> Image.Image:
-    """Create a NetEase Cloud Music icon — 红色音符。
-
-    双层绘制：深色描边 + 红色填充。
-    """
-    cx, cy = size // 2, size // 2
-
-    # ── 描边层 ──
-    outline = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    od = ImageDraw.Draw(outline)
-    ow = 2
-    # 音符：竖线 + 圆形底部
-    note_x = cx - size // 8
-    note_top = size // 5 - ow
-    note_bottom = cy + size // 6
-    r = size // 7
-    # 竖线描边
-    od.line([(note_x, note_top), (note_x, note_bottom + r)], fill=WYY_DARK, width=max(4, size // 8))
-    # 圆形底部描边
-    od.ellipse(
-        [note_x - r - ow, note_bottom - r - ow, note_x + r + ow, note_bottom + r + ow],
-        fill=WYY_DARK,
-    )
-    # 横线（旗子）描边
-    flag_x = note_x + size // 4
-    od.line([(note_x, note_top), (flag_x, note_top + size // 8)], fill=WYY_DARK, width=max(4, size // 8))
-    od.line([(note_x, note_top + size // 5), (flag_x, note_top + size // 5 + size // 8)], fill=WYY_DARK, width=max(4, size // 8))
-
-    # ── 填充层 ──
-    fill = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    fd = ImageDraw.Draw(fill)
-    # 竖线
-    fd.line([(note_x, note_top), (note_x, note_bottom + r)], fill=WYY_RED, width=max(3, size // 10))
-    # 圆形底部
-    fd.ellipse(
-        [note_x - r, note_bottom - r, note_x + r, note_bottom + r],
-        fill=WYY_RED,
-    )
-    # 横线（旗子）
-    fd.line([(note_x, note_top), (flag_x, note_top + size // 8)], fill=WYY_RED, width=max(3, size // 10))
-    fd.line([(note_x, note_top + size // 5), (flag_x, note_top + size // 5 + size // 8)], fill=WYY_RED, width=max(3, size // 10))
 
     # 合成
     result = Image.new("RGBA", (size, size), (0, 0, 0, 0))

@@ -5,7 +5,7 @@ import threading
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from . import dark_mode, vscode, browser, word, netease
+from . import dark_mode, vscode, browser, word
 from .sunrise import SunTimes, get_today_sun_times, get_tomorrow_sun_times
 from .geolocation import detect_location_with_fallback, GeoResult
 from .power_monitor import PowerMonitor
@@ -115,6 +115,9 @@ class DarkModeScheduler:
         """Called when the system resumes from sleep/hibernate/display-on."""
         logger.info("Power event detected, triggering recalculation")
         self._recalc_event.set()
+        # Must also set _stop_event to wake _stop_event.wait() immediately;
+        # setting only _recalc_event does NOT wake the waiting thread.
+        self._stop_event.set()
 
     def _notify_recalculate(self):
         """Notify GUI that recalculation is complete."""
@@ -147,6 +150,7 @@ class DarkModeScheduler:
                 self._wait_for_next_switch()
             except Exception:
                 logger.exception("Scheduler iteration failed")
+                self._stop_event.clear()
                 self._stop_event.wait(60)
 
     def _setup(self):
@@ -212,62 +216,49 @@ class DarkModeScheduler:
         self._apply_mode(should_be_dark)
 
     def _apply_mode(self, is_dark):
-        if self._is_dark == is_dark:
-            return
+        mode_changed = (self._is_dark != is_dark)
 
-        self._is_dark = is_dark
-        self._manual_override = False  # scheduled switch clears override
-        mode_str = "dark" if is_dark else "light"
-        logger.info("Switching to %s mode", mode_str)
+        if mode_changed:
+            self._is_dark = is_dark
+            self._manual_override = False  # scheduled switch clears override
+            mode_str = "dark" if is_dark else "light"
+            logger.info("Switching to %s mode", mode_str)
 
-        if self.config.get("features", {}).get("switch_system_theme", True):
-            try:
-                dark_mode.set_dark_mode(is_dark)
-            except Exception:
-                logger.exception("Failed to set system dark mode")
+            if self.config.get("features", {}).get("switch_system_theme", True):
+                try:
+                    dark_mode.set_dark_mode(is_dark)
+                except Exception:
+                    logger.exception("Failed to set system dark mode")
 
-        if self.config.get("features", {}).get("switch_vscode", True):
-            try:
-                themes = self.config.get("themes", {})
-                vscode.set_theme(
-                    is_dark,
-                    dark_theme=themes.get("vscode_dark", "Default Dark Modern"),
-                    light_theme=themes.get("vscode_light", "Default Light Modern"),
-                )
-            except Exception:
-                logger.exception("Failed to set VS Code theme")
-
-        if self.config.get("features", {}).get("switch_edge_dark_reader", True):
-            try:
-                browser.setup_edge_integration()
-            except Exception:
-                logger.exception("Failed to configure Edge")
-
-        if self.config.get("features", {}).get("switch_word", True):
-            try:
-                themes = self.config.get("themes", {})
-                word.set_theme(
-                    is_dark,
-                    dark_theme=themes.get("word_dark", "深色"),
-                    light_theme=themes.get("word_light", "浅色"),
-                )
-            except Exception:
-                logger.exception("Failed to set Word theme")
-
-        if self.config.get("features", {}).get("switch_wyy", True):
-            # 只在网易云正在运行时才切换，不主动启动它
-            if netease._is_app_running():
+            if self.config.get("features", {}).get("switch_vscode", True):
                 try:
                     themes = self.config.get("themes", {})
-                    netease.set_theme(
+                    vscode.set_theme(
                         is_dark,
-                        dark_theme=themes.get("wyy_dark", "深色模式"),
-                        light_theme=themes.get("wyy_light", "浅色模式"),
+                        dark_theme=themes.get("vscode_dark", "Default Dark Modern"),
+                        light_theme=themes.get("vscode_light", "Default Light Modern"),
                     )
                 except Exception:
-                    logger.exception("Failed to set NetEase Cloud Music theme")
+                    logger.exception("Failed to set VS Code theme")
 
-        if self.on_state_change:
+            if self.config.get("features", {}).get("switch_edge_dark_reader", True):
+                try:
+                    browser.setup_edge_integration()
+                except Exception:
+                    logger.exception("Failed to configure Edge")
+
+            if self.config.get("features", {}).get("switch_word", True):
+                try:
+                    themes = self.config.get("themes", {})
+                    word.set_theme(
+                        is_dark,
+                        dark_theme=themes.get("word_dark", "深色"),
+                        light_theme=themes.get("word_light", "浅色"),
+                    )
+                except Exception:
+                    logger.exception("Failed to set Word theme")
+
+        if mode_changed and self.on_state_change:
             try:
                 self.on_state_change(is_dark)
             except Exception:
@@ -307,8 +298,13 @@ class DarkModeScheduler:
                      "dark" if next_is_dark else "light",
                      next_time.strftime("%Y-%m-%d %H:%M"))
 
-        # Single wait until switch time — woken early by power/recalc events
+        # Notify GUI so it can refresh the countdown immediately
+        self._notify_recalculate()
+
+        # Single wait until switch time — woken early by power/recalc events.
+        # Clear _stop_event before waiting so power resume can set it again.
         seconds_until = max(1, (next_time - now).total_seconds())
+        self._stop_event.clear()
         self._stop_event.wait(timeout=seconds_until)
 
         if not self._running:

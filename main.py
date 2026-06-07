@@ -79,6 +79,7 @@ def main():
         new_state = toggle_dark_mode()
         scheduler._is_dark = new_state
         scheduler.set_manual_override()
+
         if tray:
             tray.update_icon(new_state)
         if root and gui:

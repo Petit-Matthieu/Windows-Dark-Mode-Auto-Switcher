@@ -39,15 +39,12 @@ def get_default_config() -> dict:
             "vscode_light": "Default Light Modern",
             "word_dark": "深色",
             "word_light": "浅色",
-            "wyy_dark": "深色模式",
-            "wyy_light": "浅色模式",
         },
         "features": {
             "switch_system_theme": True,
             "switch_vscode": True,
             "switch_edge_dark_reader": True,
             "switch_word": True,
-            "switch_wyy": True,
         },
         "autostart": True,
         "minimize_to_tray": True,  # 关闭窗口时最小化到托盘而非退出
