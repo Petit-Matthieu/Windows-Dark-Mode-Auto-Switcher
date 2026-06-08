@@ -258,9 +258,11 @@ class DarkModeScheduler:
                 except Exception:
                     logger.exception("Failed to set Word theme")
 
-        if mode_changed and self.on_state_change:
+        # Always notify GUI to refresh (even if mode didn't change),
+        # so the display updates after power resume / recalculation.
+        if self.on_state_change:
             try:
-                self.on_state_change(is_dark)
+                self.on_state_change(is_dark, mode_changed=mode_changed)
             except Exception:
                 logger.exception("State change callback failed")
 

@@ -64,8 +64,11 @@ def main():
     _ico_sun = get_sun_ico_path()
     _ico_moon = get_moon_ico_path()
 
-    def on_state_change(is_dark):
-        logger.info("State changed: %s", "dark" if is_dark else "light")
+    def on_state_change(is_dark, mode_changed=True):
+        if mode_changed:
+            logger.info("State changed: %s", "dark" if is_dark else "light")
+        else:
+            logger.info("Mode confirmed: %s (no change needed)", "dark" if is_dark else "light")
         def _update():
             gui._update_display()
             gui.apply_theme_for_mode(is_dark)

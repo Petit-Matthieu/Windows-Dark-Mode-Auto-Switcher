@@ -25,7 +25,7 @@ FONT_GEAR = (FONT_FAMILY, 12)
 # ── 窗口尺寸 ──
 WIN_WIDTH = 460
 WIN_HEIGHT_COLLAPSED = 280   # 折叠设置后的高度
-WIN_HEIGHT_EXPANDED = 740    # 展开设置后的高度
+WIN_HEIGHT_EXPANDED = 560    # 展开设置后的高度
 
 # ── 亮色主题配色 ──
 LIGHT_THEME = {

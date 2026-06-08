@@ -47,14 +47,27 @@ def main():
     scheduler: DarkModeScheduler | None = None
     root: tk.Tk | None = None
 
-    def on_state_change(is_dark: bool):
-        """Called by scheduler when mode changes."""
+    def on_state_change(is_dark: bool, mode_changed: bool = True):
+        """Called by scheduler after mode recalculation.
+
+        Args:
+            is_dark: Whether dark mode should be active.
+            mode_changed: True if the mode actually changed, False if
+                the mode was already correct (e.g. after power resume).
+        """
         mode = "dark" if is_dark else "light"
-        logger.info("State changed to %s mode", mode)
+        if mode_changed:
+            logger.info("State changed to %s mode", mode)
+        else:
+            logger.info("Mode confirmed: %s (no change needed)", mode)
+
+        # Always update tray icon and GUI (even if mode didn't change),
+        # so the display refreshes after power resume / recalculation.
         if tray:
             tray.update_icon(is_dark)
-            mode_cn = "深色" if is_dark else "浅色"
-            tray.show_notification("模式切换", f"已切换到{mode_cn}模式")
+            if mode_changed:
+                mode_cn = "深色" if is_dark else "浅色"
+                tray.show_notification("模式切换", f"已切换到{mode_cn}模式")
         # Update GUI if visible (thread-safe)
         if root and gui:
             def _update():
